@@ -1,7 +1,8 @@
 #[allow(dead_code)]
 const API_TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
 const API_AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize";
-const REDIRECT_URI: &str = "http%3A%2F%2Flocalhost%3A8080%2Fcallback";
+const URL_ENCODED_REDIRECT_URI: &str = "http%3A%2F%2Flocalhost%3A8080%2Fcallback";
+const UNENCODED_REDIRECT_URI: &str = "http://localhost:8080/callback";
 
 #[allow(dead_code)]
 #[allow(non_snake_case)]
@@ -27,7 +28,6 @@ pub mod Bearer {
         access_token: String,
         expires_at: DateTime<Utc>,
     }
-
 
     #[allow(dead_code)]
     impl ApiCredential<'_> {
@@ -94,7 +94,8 @@ pub mod Code {
     
     use crate::api_model::credentials::API_TOKEN_URL;
     use crate::api_model::credentials::API_AUTHORIZE_URL;
-    use crate::api_model::credentials::REDIRECT_URI;
+    use crate::api_model::credentials::URL_ENCODED_REDIRECT_URI;
+    use crate::api_model::credentials::UNENCODED_REDIRECT_URI;
 
     //-----------------------Fetching AuthCode---------------------------------
 
@@ -110,7 +111,7 @@ pub mod Code {
             "{}?response_type=code&client_id={}&scope=user-read-currently-playing&redirect_uri={}",
             &API_AUTHORIZE_URL,
             cid,
-            &REDIRECT_URI
+            &URL_ENCODED_REDIRECT_URI
         };
 
         //Set TcpListener to Listen API callback
@@ -202,8 +203,7 @@ pub mod Code {
             
             let mut params = HashMap::new();
 
-            //You MUST insert redirect_uri without URL-encode
-            params.insert("redirect_uri", "http://localhost:8080/callback".to_string());
+            params.insert("redirect_uri", UNENCODED_REDIRECT_URI.to_string());
             params.insert("grant_type", "authorization_code".to_string());
             params.insert("code", auth_code.clone());
             
@@ -220,7 +220,6 @@ pub mod Code {
         }
 
         pub fn get_access_token(&self) -> String {
-            println!{"token: {}", &self.access_token};
             self.access_token.clone()
         }
     }
