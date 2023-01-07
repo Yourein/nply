@@ -16,6 +16,261 @@ async fn throw_url(carg: &str) -> Result<(), Box<dyn Error + Send + Sync + 'stat
 
 #[allow(non_snake_case)]
 #[allow(dead_code)]
+pub mod OAuth1_session {
+    use std::collections::BTreeMap;
+    use reqwest;
+    use chrono::Local;
+    use urlencoding::encode as p_encode;
+    use std::str;
+    use rand::{thread_rng, Rng};
+    use rand::distributions::Alphanumeric;
+    use std::error::Error;
+    use url::Url;
+    use std::io;
+    use std::io::Write;
+
+    const API_REQUEST_TOKEN_URL: &str = "https://api.twitter.com/oauth/request_token";
+    const API_AUTHORIZE_URL: &str = "https://api.twitter.com/oauth/authorize";
+    const API_ACCESS_TOKEN_URL: &str = "https://api.twitter.com/oauth/access_token";
+
+    pub struct OAuthHeader {
+        pub signature: String,
+        pub header: String
+    }
+
+    impl OAuthHeader {
+        pub fn new (
+            api_key: &str,
+            api_secret: &str,
+            request_method: &str,
+            request_url: &Url,
+            extra_params: &BTreeMap<String, String>,
+            extra_oauth_params: &BTreeMap<String, String>
+        ) -> OAuthHeader {
+            //パラメータの準備
+            let nonce = Self::create_oauth_nonce();
+            let current_timestamp = Local::now().timestamp().to_string();
+            let crypt_key = format!{"{}&", p_encode(api_secret)};
+
+            let mut params: BTreeMap<String, String> = BTreeMap::new();
+            for (key, val) in extra_params {
+                params.insert(key.to_string(), val.to_string());
+            }
+            for (key, val) in extra_oauth_params {
+                params.insert(key.to_string(), val.to_string());
+            }
+            params.insert("oauth_consumer_key".to_string(), api_key.to_string());
+            params.insert("oauth_nonce".to_string(), nonce.clone());
+            params.insert("oauth_signature_method".to_string(), "HMAC-SHA1".to_string());
+            params.insert("oauth_timestamp".to_string(), current_timestamp.clone());
+            params.insert("oauth_version".to_string(), "1.0".to_string());
+
+            //signatureの作成
+            let signature_string = Self::create_signature(
+                request_method.to_string(),
+                request_url,
+                &params,
+                crypt_key
+            );
+
+            let mut header_params: BTreeMap<String, String> = BTreeMap::new();
+            header_params.insert("oauth_consumer_key".to_string(), api_key.to_string());
+            header_params.insert("oauth_nonce".to_string(), nonce.clone());
+            header_params.insert("oauth_signature".to_string(), signature_string.clone());
+            header_params.insert("oauth_signature_method".to_string(), "HMAC-SHA1".to_string());
+            header_params.insert("oauth_timestamp".to_string(), current_timestamp.clone());
+            header_params.insert("oauth_version".to_string(), "1.0".to_string());
+            for (key, val) in extra_oauth_params {
+                header_params.insert(key.to_string(), val.to_string());
+            }
+
+            //authorization headerの作成
+            let header_string = Self::create_authorization_header(&header_params);
+            
+            OAuthHeader {
+                signature: signature_string,
+                header: header_string
+            }
+        }
+
+        fn create_authorization_header(params: &BTreeMap<String, String>) -> String {
+            let param_string = params
+                .iter()
+                .map(|(k, v)| format!{r#"{}="{}""#, k, p_encode(v)})
+                .collect::<Vec<String>>()
+                .join(", ");
+
+            format!{"OAuth {}", param_string}
+        }
+
+        fn create_signature(request_method: String, url: &Url, params: &BTreeMap<String, String>, crypt_key: String) -> String {
+            let param_string = params.iter().map(|(k, v)| format!{"{}={}", k, v}).collect::<Vec<String>>().join("&");
+            let base = format!{"{}&{}&{}", request_method, p_encode(&(Self::get_base_url(url))), p_encode(&param_string)};
+            let hash = hmacsha1::hmac_sha1(crypt_key.as_bytes(), base.as_bytes());
+            base64::encode(&hash).to_string()
+        }
+
+        fn get_base_url(url: &Url) -> String {
+            format!{
+                "{}://{}{}",
+                url.scheme(),
+                url.host_str().unwrap_or(""),
+                url.path()
+            }
+        }
+
+        fn create_oauth_nonce() -> String {
+            let rand_str: String = thread_rng()
+                .sample_iter(&Alphanumeric)
+                .take(32)
+                .map(char::from)
+                .collect();
+
+            let b64_encoded_str: String = base64::encode(rand_str);
+            let res = b64_encoded_str.replace(&['+', '/', '='], "");
+
+            res
+        }
+    }
+
+    pub struct OAuth1Session {
+        api_key: String,
+        api_secret: String,
+        oauth_token: Option<String>,
+        oauth_token_secret: Option<String>
+    }
+
+    impl OAuth1Session {
+        pub async fn new(apikey: String, apisecret: String) -> OAuth1Session {
+            let token_result = Self::perform_auth(&apikey, &apisecret);
+
+            let mut token = None;
+            let mut token_secret = None;
+            match token_result.await {
+                Ok (res) => {
+                    token = Some(res.0);
+                    token_secret = Some(res.1);
+                }
+                _ => {}
+            }
+
+            OAuth1Session {
+                api_key: apikey,
+                api_secret: apisecret,
+                oauth_token: token,
+                oauth_token_secret: token_secret
+            }
+        }
+
+        async fn request_token(apikey: &str, apisecret: &str) -> Result<(String, String), Box<dyn Error + Send + Sync + 'static>> {
+            //パラメータを用意
+            let request_params = BTreeMap::new();
+            let mut extra_oauth_params = BTreeMap::new();
+            extra_oauth_params.insert("oauth_callback".to_string(), "oob".to_string());
+            let request_url = format!{"{}?oauth_callback=oob", API_REQUEST_TOKEN_URL};
+           
+            //headerを作る
+            let headers = OAuthHeader::new(
+                apikey,
+                apisecret,
+                "POST",
+                &Url::parse(&request_url).unwrap(),
+                &request_params,
+                &extra_oauth_params
+            );
+
+            //tokenをリクエスト
+            let response = reqwest::Client::new().post(request_url)
+                .header("Authorization", headers.header)
+                .send().await?
+                .text().await?;
+
+            let mut token = "".to_string();
+            let mut token_secret = "".to_string();
+
+            for (key, value) in Url::parse(&(format!{"http://localhost?{}", response})).unwrap().query_pairs() {
+                match key {
+                    std::borrow::Cow::Borrowed("oauth_token") => { token = value.to_string(); },
+                    std::borrow::Cow::Borrowed("oauth_token_secret") => { token_secret = value.to_string(); },
+                    _ => {}
+                }
+            }
+
+            assert_ne!(token, "".to_string());
+            assert_ne!(token_secret, "".to_string());
+            Ok((token, token_secret))
+        }
+
+        async fn request_pin(oauth_token: &str) -> Result<String, String> {
+            let url_with_param = format!{"{}?oauth_token={}", API_AUTHORIZE_URL, p_encode(oauth_token)};
+
+            println!{"\x1b[1;97mPlease open the URL and confirm access:\x1b[97m {}", url_with_param}
+
+            print!{"\x1b[1;97mPlease input the PIN number:\x1b[97m "};
+            io::stdout().flush().unwrap();
+            let mut raw_pin = String::new();
+            io::stdin().read_line(&mut raw_pin).unwrap();
+            let pin = raw_pin.replace("\n", "");
+
+            let validater = pin.clone();
+            let is_valid_pin = validater.len() == 7 && !validater.chars().map(|c| c.is_numeric()).collect::<Vec<bool>>().contains(&false);
+
+            return if is_valid_pin { Ok(pin) } else { Err("Invalid PIN".to_string()) } 
+        }
+
+        async fn request_access_token(unverified_token: &str, verifier: &str) -> Result<(String, String), String> {
+            let request_url = format!{"{}?oauth_token={}&oauth_verifier={}", API_ACCESS_TOKEN_URL, unverified_token, verifier};
+
+            let request_res = reqwest::Client::new()
+                .post(request_url)
+                .send().await.unwrap();
+
+            let params = request_res.text().await.unwrap();
+            let parse_url = Url::parse(&(format!{"http://localhost?{}", params})).unwrap();
+            let mut access_token = String::new();
+            let mut access_token_secret = String::new();
+            for (key, value) in parse_url.query_pairs() {
+                match key {
+                    std::borrow::Cow::Borrowed("oauth_token") => { access_token = value.to_string(); },
+                    std::borrow::Cow::Borrowed("oauth_token_secret") => { access_token_secret = value.to_string(); },
+                    _ => {}
+                }
+            }
+
+            assert_ne!(access_token, String::new());
+            assert_ne!(access_token_secret, String::new());
+
+            Ok((access_token, access_token_secret))
+        }
+
+        async fn perform_auth(apikey: &str, apisecret: &str) -> Result<(String, String), Box<dyn Error + Send + Sync + 'static>> {
+            let token_result = Self::request_token(apikey, apisecret);
+            let (token, _token_secret) = token_result.await?;
+            let pin = Self::request_pin(&token).await?;
+            let (access_token, access_token_secret) = Self::request_access_token(&token, &pin).await?;
+
+            println!{"\x1b[1;32mAPI access granted.\x1b[0;97m"}
+            Ok((access_token, access_token_secret))
+        }
+
+        
+        pub async fn POST(
+            request: reqwest::RequestBuilder,
+            params: &BTreeMap<String, String>
+        ) -> Result<reqwest::Response, reqwest::Error> {
+            request.send().await
+        }
+
+        /*
+        pub fn GET() -> reqwest::Response {
+
+        }
+        */
+    }
+}
+
+#[allow(non_snake_case)]
+#[allow(dead_code)]
 pub mod OAuth1{
     use super::throw_url;
     use std::error::Error;
@@ -28,7 +283,6 @@ pub mod OAuth1{
     use rand::{thread_rng, Rng};
     use rand::distributions::Alphanumeric;
     use base64::encode as b64_encode;
-    use serde::{Deserialize};
 
     const API_REQUEST_TOKEN_URL: &str = "https://api.twitter.com/oauth/request_token";
     const API_AUTHORIZE_URL: &str = "https://api.twitter.com/oauth/authorize";
@@ -111,14 +365,14 @@ pub mod OAuth1{
         }
     }
 
-    #[derive(Deserialize, Debug)]
+    #[derive(Debug)]
     pub struct RequestTokenResponse {
         pub oauth_token: String,
         pub oauth_token_secret: String,
         pub oauth_callback_confirmed: bool
     }
 
-    #[derive(Deserialize, Debug)]
+    #[derive(Debug)]
     pub struct TokenResponse {
         oauth_token: String,
         oauth_token_secret: String
@@ -195,7 +449,7 @@ pub mod OAuth1{
             print!{"Please input the PIN number: "};
             io::stdout().flush().unwrap();
             let mut raw_pin = String::new();
-            io::stdin().read_line(&mut raw_pin).except("stdin Error");
+            io::stdin().read_line(&mut raw_pin).unwrap();
             let pin = raw_pin.replace("\n", "");
 
             let validater = pin.clone();
@@ -295,7 +549,7 @@ pub mod OAuth2 {
     use rand::distributions::Alphanumeric;
     use std::collections::HashMap;
     use reqwest;
-    use serde::{Deserialize};
+    use serde::Deserialize;
    
     const API_AUTHORIZE_URL: &str = "https://twitter.com/i/oauth2/authorize";
     const API_TOKEN_URL: &str = "https://api.twitter.com/2/oauth2/token";
