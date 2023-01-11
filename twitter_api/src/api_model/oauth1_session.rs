@@ -1,4 +1,4 @@
-use crate::api_model::credentials::OAuth2_session::OAuthHeader;
+use crate::api_model::oauth1_header::OAuthHeader;
 
 use std::collections::BTreeMap;
 use reqwest;
@@ -8,6 +8,11 @@ use url::Url;
 use std::io;
 use std::io::Write;
 
+const API_REQUEST_TOKEN_URL: &str = "https://api.twitter.com/oauth/request_token";
+const API_AUTHORIZE_URL: &str = "https://api.twitter.com/oauth/authorize";
+const API_ACCESS_TOKEN_URL: &str = "https://api.twitter.com/oauth/access_token";
+
+#[allow(dead_code)]
 pub struct OAuth1Session {
     api_key: String,
     api_secret: String,
@@ -129,15 +134,58 @@ impl OAuth1Session {
     }
 
     pub async fn post(
+        &self,
         request: reqwest::RequestBuilder,
-        params: &BTreeMap<String, String>
+        url: &Url,
+        params: &BTreeMap<String, String>,
+        oauth_params: &BTreeMap<String, String>
     ) -> Result<reqwest::Response, reqwest::Error> {
-        request.send().await
+        let mut oauth_params_for_header = BTreeMap::new();
+        for (k, v) in oauth_params {
+            oauth_params_for_header.insert(k.clone(), v.clone());
+        }
+    
+        if self.oauth_token.is_some() {
+            oauth_params_for_header.insert(
+                "oauth_token".to_string(),
+                self.oauth_token
+                    .as_ref()
+                    .to_owned()
+                    .unwrap()
+                    .to_string()
+            );
+        }
+        
+        let header_factory = OAuthHeader::new(
+            &self.api_key,
+            &self.api_secret,
+            "POST",
+            url,
+            params,
+            &oauth_params_for_header
+        );
+
+        request.header("Authorization", header_factory.header).send().await
     }
 
     /*
-    pub fn GET() -> reqwest::Response {
+    pub async fn get(
+        &self,
+        request: reqwest::RequestBuilder,
+        url: &Url,
+        params: &BTreeMap<String, String>,
+        oauth_params: &BTreeMap<String, String>
+    ) -> Result<reqwest::Response, reqwest::Error> {
+        let header_factory = OAuthHeader::new(
+            &self.api_key,
+            &self.api_secret,
+            "GET",
+            url,
+            params,
+            oauth_params
+        );
 
+        request.header("Authorization", header_factory.header).send().await
     }
     */
 }
