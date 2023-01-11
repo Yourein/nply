@@ -1,3 +1,7 @@
+use dotenv;
+
 fn main() {
-    println!("Hello, world!");
+    dotenv::dotenv().ok();
+
+    println!{"{}", dotenv::var("TEST_VAR").unwrap()};
 }
