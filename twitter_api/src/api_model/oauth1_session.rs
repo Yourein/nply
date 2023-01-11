@@ -12,6 +12,7 @@ const API_REQUEST_TOKEN_URL: &str = "https://api.twitter.com/oauth/request_token
 const API_AUTHORIZE_URL: &str = "https://api.twitter.com/oauth/authorize";
 const API_ACCESS_TOKEN_URL: &str = "https://api.twitter.com/oauth/access_token";
 
+#[allow(dead_code)]
 pub struct OAuth1Session {
     api_key: String,
     api_secret: String,
