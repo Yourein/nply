@@ -15,6 +15,7 @@ impl OAuthHeader {
     pub fn new (
         api_key: &str,
         api_secret: &str,
+        token_secret: &str,
         request_method: &str,
         request_url: &Url,
         extra_params: &BTreeMap<String, String>,
@@ -23,7 +24,8 @@ impl OAuthHeader {
         //パラメータの準備
         let nonce = Self::create_oauth_nonce();
         let current_timestamp = Local::now().timestamp().to_string();
-        let crypt_key = format!{"{}&", p_encode(api_secret)};
+        let crypt_key = format!{"{}&{}", p_encode(api_secret), p_encode(token_secret)};
+
 
         let mut params: BTreeMap<String, String> = BTreeMap::new();
         for (key, val) in extra_params {
@@ -56,7 +58,7 @@ impl OAuthHeader {
         for (key, val) in extra_oauth_params {
             header_params.insert(key.to_string(), val.to_string());
         }
-
+        
         //authorization headerの作成
         let header_string = Self::create_authorization_header(&header_params);
         
@@ -77,9 +79,10 @@ impl OAuthHeader {
     }
 
     fn create_signature(request_method: String, url: &Url, params: &BTreeMap<String, String>, crypt_key: String) -> String {
-        let param_string = params.iter().map(|(k, v)| format!{"{}={}", k, v}).collect::<Vec<String>>().join("&");
+        let param_string = params.iter().map(|(k, v)| format!{"{}={}", k, p_encode(v)}).collect::<Vec<String>>().join("&");
         let base = format!{"{}&{}&{}", request_method, p_encode(&(Self::get_base_url(url))), p_encode(&param_string)};
         let hash = hmacsha1::hmac_sha1(crypt_key.as_bytes(), base.as_bytes());
+        
         base64::encode(&hash).to_string()
     }
 

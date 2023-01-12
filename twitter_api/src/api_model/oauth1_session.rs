@@ -53,6 +53,7 @@ impl OAuth1Session {
         let headers = OAuthHeader::new(
             apikey,
             apisecret,
+            "",
             "POST",
             &Url::parse(&request_url).unwrap(),
             &request_params,
@@ -159,13 +160,18 @@ impl OAuth1Session {
         let header_factory = OAuthHeader::new(
             &self.api_key,
             &self.api_secret,
+            &self.oauth_token_secret.as_ref().to_owned().unwrap(),
             "POST",
             url,
             params,
             &oauth_params_for_header
         );
 
-        request.header("Authorization", header_factory.header).send().await
+        println!{"header: {}", header_factory.header};
+
+        request
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .header("Authorization", header_factory.header).send().await
     }
 
     /*
