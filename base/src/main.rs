@@ -12,15 +12,13 @@ async fn main() {
 
     //creating API instances
     let mut sapi = spotify_api::api_model::api::Api::new(&spotify_key, &spotify_secret);
-    //let tapi = twitter_api::api_model::api::Api::new(&twitter_key, &twitter_secret).await;
+    let tapi = twitter_api::api_model::api::Api::new(&twitter_key, &twitter_secret).await;
     
     //fetch current playing
     let resp = sapi.get_current_song().await.unwrap();
     
-    /*
     let img = reqwest::get(&resp.item.album.images[0].url).await.unwrap().bytes().await.unwrap();
     let media_id = tapi.upload_picture(img).await;
-
 
     if media_id.is_some() {
         let mut media_ids: Vec<String> = Vec::new();
@@ -43,5 +41,4 @@ async fn main() {
     else {
         println!{"Tweet failed. Please check if you playing a song on Spotify now."}
     }
-    */
 }
