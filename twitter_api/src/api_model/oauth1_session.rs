@@ -168,8 +168,6 @@ impl OAuth1Session {
             &oauth_params_for_header
         );
 
-        println!{"header: {}", header_factory.header};
-
         request
             .header("Content-Type", "application/x-www-form-urlencoded")
             .header("Authorization", header_factory.header).send().await
@@ -211,25 +209,4 @@ impl OAuth1Session {
             .header("Authorization", header_factory.header)
             .send().await
     }
-
-    /*
-    pub async fn get(
-        &self,
-        request: reqwest::RequestBuilder,
-        url: &Url,
-        params: &BTreeMap<String, String>,
-        oauth_params: &BTreeMap<String, String>
-    ) -> Result<reqwest::Response, reqwest::Error> {
-        let header_factory = OAuthHeader::new(
-            &self.api_key,
-            &self.api_secret,
-            "GET",
-            url,
-            params,
-            oauth_params
-        );
-
-        request.header("Authorization", header_factory.header).send().await
-    }
-    */
 }
