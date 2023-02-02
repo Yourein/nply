@@ -2,6 +2,7 @@ use crate::api_model::oauth1_header::OAuthHeader;
 
 use std::collections::BTreeMap;
 use reqwest;
+use reqwest::multipart;
 use std::str;
 use std::error::Error;
 use url::Url;
@@ -172,6 +173,43 @@ impl OAuth1Session {
         request
             .header("Content-Type", "application/x-www-form-urlencoded")
             .header("Authorization", header_factory.header).send().await
+    }
+
+    pub async fn post_multipart(
+        &self,
+        form: multipart::Form,
+        url: &Url,
+    ) -> Result<reqwest::Response, reqwest::Error> {
+        let params = BTreeMap::new();
+        let mut oauth_params = BTreeMap::new();
+        if self.oauth_token.is_some() {
+            oauth_params.insert(
+                "oauth_token".to_string(),
+                self.oauth_token
+                    .as_ref()
+                    .to_owned()
+                    .unwrap()
+                    .to_string()
+            );
+        }
+
+        let header_factory = OAuthHeader::new(
+            &self.api_key,
+            &self.api_secret,
+            &self.oauth_token_secret.as_ref().to_owned().unwrap(),
+            "POST",
+            url,
+            &params,
+            &oauth_params
+        );
+
+        let client = reqwest::Client::new();
+
+        client
+            .post(url.to_string())
+            .multipart(form)
+            .header("Authorization", header_factory.header)
+            .send().await
     }
 
     /*
