@@ -68,6 +68,38 @@ impl Api {
         ).await
     }
 
+    pub async fn compose_new_tweet_with_media(
+        &self,
+        text: &str,
+        media: &Vec<String>
+    ) -> Result<reqwest::Response, reqwest::Error> {
+        let request_url = "https://api.twitter.com/1.1/statuses/update.json";
+        let url = url::Url::parse(&request_url).unwrap();
+        
+        let mut request_param = BTreeMap::new();
+        let extra_oauth_param = BTreeMap::new();
+        request_param.insert("status".to_string(), text.to_owned().to_string());
+
+        let media_info = media.join(",");
+        request_param.insert("media_ids".to_string(), media_info);
+
+        let body = request_param
+            .iter()
+            .map(|(k, v)| format!{"{}={}", k, urlencoding::encode(v)})
+            .collect::<Vec<String>>()
+            .join("&");
+
+        let client = reqwest::Client::new();
+        let req = client.post(request_url).body(body);
+
+        self.session.post(
+            req,
+            &url,
+            &request_param,
+            &extra_oauth_param
+        ).await
+    }
+
     pub async fn upload_picture(&self, picture: Bytes) -> Option<String> {
         let request_url = "https://upload.twitter.com/1.1/media/upload.json";
         let url = url::Url::parse(&request_url).unwrap();
