@@ -77,7 +77,7 @@ pub mod CurrentlyPlaying {
         pub is_local: bool,
         pub name: String,
         pub popularity: i32,
-        pub preview_url: String,
+        pub preview_url: Option<String>,
         pub track_number: i32,
         #[serde(rename = "type")]
         pub type_id: String,
