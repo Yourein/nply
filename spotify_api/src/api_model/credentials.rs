@@ -219,6 +219,10 @@ pub mod Code {
             Ok(())
         }
 
+        pub fn is_token_valid(&self) -> bool {
+            self.access_token != "" && Utc::now() < self.expires_at
+        }
+
         pub fn get_access_token(&self) -> String {
             self.access_token.clone()
         }
