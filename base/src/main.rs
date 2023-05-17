@@ -27,6 +27,17 @@ fn get_credentials() -> AuthKey {
     }
 }
 
+async fn get_spotify_api(cred: &AuthKey) -> SpotifyAPI {
+    match SpotifyAPI::new(&cred.spotify_key, &cred.spotify_secret).await {
+        Ok(inst) => {
+            inst
+        }
+        Err(reason) => {
+            panic!("{}", reason)
+        }
+    }
+}
+
 async fn post_current_song(tapi: &TwitterAPI, sapi: &mut SpotifyAPI<'_>) -> Result<(), String> {
     //fetch current playing
     let resp = sapi.get_current_song().await.unwrap();
@@ -64,8 +75,8 @@ async fn main() {
     let credentials = get_credentials();
     
     //creating API instances
-    let mut sapi = SpotifyAPI::new(&credentials.spotify_key, &credentials.spotify_secret);
     let tapi = TwitterAPI::new(&credentials.twitter_key, &credentials.twitter_secret).await;
+    let mut sapi = get_spotify_api(&credentials).await;
 
     println!{"\x1b[1;32mReady\x1b[0;97m"};
     
