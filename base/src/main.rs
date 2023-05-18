@@ -38,35 +38,41 @@ async fn get_spotify_api(cred: &AuthKey) -> SpotifyAPI {
     }
 }
 
-async fn post_current_song(tapi: &TwitterAPI, sapi: &mut SpotifyAPI<'_>) -> Result<(), String> {
-    //fetch current playing
-    let resp = sapi.get_current_song().await.unwrap();
-    
-    let img = reqwest::get(&resp.item.album.images[0].url).await.unwrap().bytes().await.unwrap();
-    let media_id = tapi.upload_picture(img).await;
+async fn post_current_song(
+    tapi: &TwitterAPI,
+    sapi: &mut SpotifyAPI<'_>
+) -> Result<(), String> {
+    match sapi.fetch_current_song().await {
+        Ok(raw) => {
+            let resp = sapi.parse_current_song_result(raw);
+            let img = reqwest::get(&resp.album_art_url).await
+                .unwrap()
+                .bytes().await
+                .unwrap();
 
-    if media_id.is_some() {
-        let mut media_ids: Vec<String> = Vec::new();
-        media_ids.push(media_id.unwrap());
+            match tapi.upload_picture(img).await {
+                Some(id) => {
+                    let media_ids = vec![id];
+                    let song_url = format!{"https://open.spotify.com/track/{}", &resp.song_uri};
+                    let artists = &resp.track_artists.join(", ");
+                    let text = format!{
+                        "#nowplaying {} - {}\n{}",
+                        &resp.song_title,
+                        artists,
+                        song_url
+                    };
 
-        let title = resp.item.name;
-        let song_uri = resp.item.uri.strip_prefix("spotify:track:").unwrap();
-        let song_url = format!{"https://open.spotify.com/track/{}", song_uri};
-        
-        //Put artists into a single String
-        let mut artists_vec: Vec<String> = Vec::new();
-        for x in &resp.item.artists {
-            artists_vec.push(x.name.clone());
+                    let _ = tapi.compose_new_tweet_with_media(&text, &media_ids).await;
+                    Ok(())
+                }
+                None => {
+                    Err("Tweet failed. Could not upload a image to twitter".to_string())
+                }
+            }
         }
-        let artists = artists_vec.join(", ");
-        
-        let text = format!{"#nowplaying {} - {}\n{}", title, artists, song_url};
-        let _ = tapi.compose_new_tweet_with_media(&text, &media_ids).await;
-        
-        return Ok(());
-    }
-    else {
-        return Err("Tweet failed. Please check if you playing a song on Spotify now.".to_string());
+        Err(reason) => {
+            Err(reason.to_string())
+        }
     }
 }
 

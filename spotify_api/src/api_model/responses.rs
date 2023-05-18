@@ -103,3 +103,12 @@ pub mod CurrentlyPlaying {
         pub is_playing: bool
     }
 }
+
+pub struct CurrentSong {
+    pub song_title: String,
+    pub song_uri: String,
+    pub track_artists: Vec<String>,
+    pub album_title: String,
+    pub album_artists: Vec<String>,
+    pub album_art_url: String
+}
