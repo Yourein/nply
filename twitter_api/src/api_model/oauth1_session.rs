@@ -97,7 +97,12 @@ impl OAuth1Session {
         let validater = pin.clone();
         let is_valid_pin = validater.len() == 7 && !validater.chars().map(|c| c.is_numeric()).collect::<Vec<bool>>().contains(&false);
 
-        return if is_valid_pin { Ok(pin) } else { Err("Invalid PIN".to_string()) } 
+        if is_valid_pin {
+            Ok(pin)
+        }
+        else {
+            Err("Invalid PIN".to_string())
+        }
     }
 
     async fn request_access_token(unverified_token: &str, verifier: &str) -> Result<(String, String), String> {
