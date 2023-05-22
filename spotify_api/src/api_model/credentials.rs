@@ -99,13 +99,6 @@ pub mod Code {
 
     //-----------------------Fetching AuthCode---------------------------------
 
-    async fn throw_auth_url(carg: &str) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-        match webbrowser::open(carg) {
-            Ok(_) => Ok(()),
-            Err(_) => panic!() 
-        }
-    }
-
     async fn request_auth_code(cid: &str) -> Result<String, String> {
         let purl = format!{
             "{}?response_type=code&client_id={}&scope=user-read-currently-playing&redirect_uri={}",
