@@ -1,5 +1,6 @@
 use crate::api_model::oauth1_header::OAuthHeader;
 
+use utils::throw_url;
 use std::collections::BTreeMap;
 use reqwest;
 use reqwest::multipart;
@@ -85,8 +86,7 @@ impl OAuth1Session {
 
     async fn request_pin(oauth_token: &str) -> Result<String, String> {
         let url_with_param = format!{"{}?oauth_token={}", API_AUTHORIZE_URL, urlencoding::encode(oauth_token)};
-
-        println!{"\x1b[1;97mPlease open the URL and confirm access:\x1b[97m {}", url_with_param}
+        throw_url(&url_with_param).await.unwrap();
 
         print!{"\x1b[1;97mPlease input the PIN number:\x1b[97m "};
         io::stdout().flush().unwrap();
@@ -97,7 +97,12 @@ impl OAuth1Session {
         let validater = pin.clone();
         let is_valid_pin = validater.len() == 7 && !validater.chars().map(|c| c.is_numeric()).collect::<Vec<bool>>().contains(&false);
 
-        return if is_valid_pin { Ok(pin) } else { Err("Invalid PIN".to_string()) } 
+        if is_valid_pin {
+            Ok(pin)
+        }
+        else {
+            Err("Invalid PIN".to_string())
+        }
     }
 
     async fn request_access_token(unverified_token: &str, verifier: &str) -> Result<(String, String), String> {

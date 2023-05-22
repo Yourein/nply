@@ -86,7 +86,7 @@ pub mod Code {
     use url::Url;
     use std::io::{BufRead, BufReader, Write};
     use std::net::TcpListener;
-    use webbrowser;
+    use utils::throw_url;
     use reqwest;
     use base64;
     use serde::Deserialize;
@@ -99,14 +99,7 @@ pub mod Code {
 
     //-----------------------Fetching AuthCode---------------------------------
 
-    async fn throw_auth_url(carg: &str) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-        match webbrowser::open(carg) {
-            Ok(_) => Ok(()),
-            Err(_) => panic!() 
-        }
-    }
-
-    async fn request_auth_code(cid: &str) -> Result<String, Box<dyn Error + Send + Sync + 'static>> {
+    async fn request_auth_code(cid: &str) -> Result<String, String> {
         let purl = format!{
             "{}?response_type=code&client_id={}&scope=user-read-currently-playing&redirect_uri={}",
             &API_AUTHORIZE_URL,
@@ -118,7 +111,7 @@ pub mod Code {
         let listener = TcpListener::bind("localhost:8080").unwrap();
        
         //Open webbrowser to show prompt for the user
-        match throw_auth_url(&purl).await {
+        match throw_url(&purl).await {
             Ok(_) => (),
             Err(e) => return Err(e)
         }
