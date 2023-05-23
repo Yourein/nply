@@ -28,13 +28,13 @@ pub mod CurrentlyPlaying {
     #[derive(Deserialize, Debug)]
     pub struct Artists {
         pub external_urls: HashMap<String, String>,
-        pub href: String,
-        pub id: String,
+        pub href: Option<String>,
+        pub id: Option<String>,
         pub name: String,
 
         #[serde(rename = "type")]
         pub type_id: String,
-        pub uri: String
+        pub uri: Option<String>
     }
 
     #[derive(Deserialize, Debug)]
@@ -46,20 +46,20 @@ pub mod CurrentlyPlaying {
 
     #[derive(Deserialize, Debug)]
     pub struct Album {
-        pub album_type: String,
+        pub album_type: Option<String>,
         pub artists: Vec<Artists>,
         pub available_markets: Vec<String>,
         pub external_urls: HashMap<String, String>,
-        pub href: String,
-        pub id: String,
+        pub href: Option<String>,
+        pub id: Option<String>,
         pub images: Vec<Image>,
         pub name: String,
-        pub release_date: String,
-        pub release_date_precision: String,
+        pub release_date: Option<String>,
+        pub release_date_precision: Option<String>,
         pub total_tracks: i32,
         #[serde(rename = "type")]
         pub type_id: String,
-        pub uri: String
+        pub uri: Option<String>
     }
 
     #[derive(Deserialize, Debug)]
@@ -72,8 +72,8 @@ pub mod CurrentlyPlaying {
         pub explicit: bool,
         pub external_ids: HashMap<String, String>,
         pub external_urls: HashMap<String, String>,
-        pub href: String,
-        pub id: String,
+        pub href: Option<String>,
+        pub id: <String>,
         pub is_local: bool,
         pub name: String,
         pub popularity: i32,
@@ -106,9 +106,9 @@ pub mod CurrentlyPlaying {
 
 pub struct CurrentSong {
     pub song_title: String,
-    pub song_uri: String,
+    pub song_uri: Option<String>,
     pub track_artists: Vec<String>,
     pub album_title: String,
     pub album_artists: Vec<String>,
-    pub album_art_url: String
+    pub album_art_url: Option<String>
 }
