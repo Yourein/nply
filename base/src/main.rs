@@ -2,6 +2,7 @@ use dotenv;
 use reqwest;
 use twitter_api::api_model::api::Api as TwitterAPI;
 use spotify_api::api_model::api::Api as SpotifyAPI;
+use spotify_api::api_model::responses::CurrentSong;
 use std::io::stdin;
 use std::io::{stdout, Write};
 
@@ -34,6 +35,54 @@ async fn get_spotify_api(cred: &AuthKey) -> SpotifyAPI {
         }
         Err(reason) => {
             panic!("{}", reason)
+        }
+    }
+}
+
+async fn post_current_song_on_local(
+    data: CurrentSong,
+    tapi: &TwitterAPI
+) -> Result<(), String> {
+    let artists = &data.track_artists.join(", ");
+    let text = if &artists.chars().count() > &0 {
+        format!{"#nowplaying {} - {}", &data.song_title, artists}
+    }
+    else {
+        format!{"#nowplaying {}", &data.song_title}
+    };
+
+    match tapi.compose_new_tweet(&text).await {
+        Ok(_) => Ok(()),
+        Err(_) => Err("Tweet failed.".to_string())
+    }
+}
+
+async fn post_current_song_on_spotify(
+    data: CurrentSong,
+    tapi: &TwitterAPI
+) -> Result<(), String> {
+    let img = reqwest::get(&data.album_art_url.to_owned().unwrap()).await
+        .unwrap()
+        .bytes().await
+        .unwrap();
+
+    match tapi.upload_picture(img).await {
+        Some(id) => {
+            let media_ids = vec![id];
+            let song_url = format!{"https://open.spotify.com/track/{}", &data.song_uri.to_owned().unwrap()};
+            let artists = &data.track_artists.join(", ");
+            let text = format!{
+                "#nowplaying {} - {}\n{}",
+                &data.song_title,
+                artists,
+                song_url
+            };
+
+            let _ = tapi.compose_new_tweet_with_media(&text, &media_ids).await;
+            Ok(())
+        }
+        None => {
+            Err("Tweet failed. Could not upload a image to twitter".to_string())
         }
     }
 }
