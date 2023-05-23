@@ -140,8 +140,8 @@ async fn main() {
                         Ok(()) => {
                             println!{"Posted Successfully"};
                         }
-                        _ => {
-                            eprintln!{"Unknown Error"};
+                        Err(e) => {
+                            eprintln!{"Error!\nExpected reason: {}", e};
                         }
                     }
                 },
