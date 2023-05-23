@@ -116,20 +116,20 @@ async fn post_current_song(
 #[tokio::main]
 async fn main() {
     let credentials = get_credentials();
-    
+
     //creating API instances
     let tapi = TwitterAPI::new(&credentials.twitter_key, &credentials.twitter_secret).await;
     let mut sapi = get_spotify_api(&credentials).await;
 
     println!{"\x1b[1;32mReady\x1b[0;97m"};
-    
+
     loop {
         print!{"Waiting... (0) exit (1) Post current song : "};
         stdout().flush().unwrap();
 
         let mut input = String::new();
         stdin().read_line(&mut input).unwrap();
-        
+
         if let Ok(i) = input.trim().parse::<usize>() {
             match i {
                 0 => {
