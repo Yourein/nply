@@ -94,29 +94,17 @@ async fn post_current_song(
     match sapi.fetch_current_song().await {
         Ok(raw) => {
             let resp = sapi.parse_current_song_result(raw);
-            let img = reqwest::get(&resp.album_art_url).await
-                .unwrap()
-                .bytes().await
-                .unwrap();
 
-            match tapi.upload_picture(img).await {
-                Some(id) => {
-                    let media_ids = vec![id];
-                    let song_url = format!{"https://open.spotify.com/track/{}", &resp.song_uri};
-                    let artists = &resp.track_artists.join(", ");
-                    let text = format!{
-                        "#nowplaying {} - {}\n{}",
-                        &resp.song_title,
-                        artists,
-                        song_url
-                    };
+            let post_result = if resp.album_art_url.is_none() {
+                post_current_song_on_local(resp, &tapi).await
+            }
+            else {
+                post_current_song_on_spotify(resp, &tapi).await
+            };
 
-                    let _ = tapi.compose_new_tweet_with_media(&text, &media_ids).await;
-                    Ok(())
-                }
-                None => {
-                    Err("Tweet failed. Could not upload a image to twitter".to_string())
-                }
+            match post_result {
+                Ok(_) => Ok(()),
+                Err(reason) => Err(reason.to_string())
             }
         }
         Err(reason) => {
