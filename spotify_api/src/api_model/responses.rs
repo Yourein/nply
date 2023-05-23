@@ -56,7 +56,7 @@ pub mod CurrentlyPlaying {
         pub name: String,
         pub release_date: Option<String>,
         pub release_date_precision: Option<String>,
-        pub total_tracks: i32,
+        pub total_tracks: Option<i32>,
         #[serde(rename = "type")]
         pub type_id: String,
         pub uri: Option<String>
@@ -73,7 +73,7 @@ pub mod CurrentlyPlaying {
         pub external_ids: HashMap<String, String>,
         pub external_urls: HashMap<String, String>,
         pub href: Option<String>,
-        pub id: <String>,
+        pub id: Option<String>,
         pub is_local: bool,
         pub name: String,
         pub popularity: i32,
