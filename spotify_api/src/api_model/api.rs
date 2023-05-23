@@ -61,25 +61,38 @@ impl Api<'_> {
         api_res: responses::CurrentlyPlaying::Responses
     ) -> responses::CurrentSong {
         let song_title = &api_res.item.name;
-        let song_uri = &api_res.item.uri.strip_prefix("spotify:track:").unwrap();
+        let album_title = &api_res.item.album.name;
+
         let track_artists = &api_res.item.artists.iter()
                 .map(|x| { x.name.to_string() })
                 .collect::<Vec<String>>();
 
-        let album_title = &api_res.item.album.name;
         let album_artists = &api_res.item.album.artists.iter()
                 .map(|x| { x.name.to_string() })
                 .collect::<Vec<String>>();
 
-        let album_art_url = &api_res.item.album.images[0].url;
+        if !(&api_res.item.is_local) {
+            let song_uri = &api_res.item.uri.strip_prefix("spotify:track:").unwrap();
+            let album_art_url = &api_res.item.album.images[0].url;
 
-        responses::CurrentSong {
-            song_title   : song_title.to_string(),
-            song_uri     : song_uri.to_string(),
-            track_artists: track_artists.to_vec(),
-            album_title  : album_title.to_string(),
-            album_artists: album_artists.to_vec(),
-            album_art_url: album_art_url.to_string()
+            responses::CurrentSong {
+                song_title   : song_title.to_string(),
+                song_uri     : Some(song_uri.to_string()),
+                track_artists: track_artists.to_vec(),
+                album_title  : album_title.to_string(),
+                album_artists: album_artists.to_vec(),
+                album_art_url: Some(album_art_url.to_string())
+            }
+        }
+        else {
+            responses::CurrentSong {
+                song_title   : song_title.to_string(),
+                song_uri     : None,
+                track_artists: track_artists.to_vec(),
+                album_title  : album_title.to_string(),
+                album_artists: album_artists.to_vec(),
+                album_art_url: None
+            }
         }
     }
 }
