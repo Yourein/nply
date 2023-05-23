@@ -2,6 +2,7 @@ use dotenv;
 use reqwest;
 use twitter_api::api_model::api::Api as TwitterAPI;
 use spotify_api::api_model::api::Api as SpotifyAPI;
+use spotify_api::api_model::responses::CurrentSong;
 use std::io::stdin;
 use std::io::{stdout, Write};
 
@@ -38,6 +39,54 @@ async fn get_spotify_api(cred: &AuthKey) -> SpotifyAPI {
     }
 }
 
+async fn post_current_song_on_local(
+    data: CurrentSong,
+    tapi: &TwitterAPI
+) -> Result<(), String> {
+    let artists = &data.track_artists.join(", ");
+    let text = if &artists.chars().count() > &0 {
+        format!{"#nowplaying {} - {}", &data.song_title, artists}
+    }
+    else {
+        format!{"#nowplaying {}", &data.song_title}
+    };
+
+    match tapi.compose_new_tweet(&text).await {
+        Ok(_) => Ok(()),
+        Err(_) => Err("Tweet failed.".to_string())
+    }
+}
+
+async fn post_current_song_on_spotify(
+    data: CurrentSong,
+    tapi: &TwitterAPI
+) -> Result<(), String> {
+    let img = reqwest::get(&data.album_art_url.to_owned().unwrap()).await
+        .unwrap()
+        .bytes().await
+        .unwrap();
+
+    match tapi.upload_picture(img).await {
+        Some(id) => {
+            let media_ids = vec![id];
+            let song_url = format!{"https://open.spotify.com/track/{}", &data.song_uri.to_owned().unwrap()};
+            let artists = &data.track_artists.join(", ");
+            let text = format!{
+                "#nowplaying {} - {}\n{}",
+                &data.song_title,
+                artists,
+                song_url
+            };
+
+            let _ = tapi.compose_new_tweet_with_media(&text, &media_ids).await;
+            Ok(())
+        }
+        None => {
+            Err("Tweet failed. Could not upload a image to twitter".to_string())
+        }
+    }
+}
+
 async fn post_current_song(
     tapi: &TwitterAPI,
     sapi: &mut SpotifyAPI<'_>
@@ -45,29 +94,17 @@ async fn post_current_song(
     match sapi.fetch_current_song().await {
         Ok(raw) => {
             let resp = sapi.parse_current_song_result(raw);
-            let img = reqwest::get(&resp.album_art_url).await
-                .unwrap()
-                .bytes().await
-                .unwrap();
 
-            match tapi.upload_picture(img).await {
-                Some(id) => {
-                    let media_ids = vec![id];
-                    let song_url = format!{"https://open.spotify.com/track/{}", &resp.song_uri};
-                    let artists = &resp.track_artists.join(", ");
-                    let text = format!{
-                        "#nowplaying {} - {}\n{}",
-                        &resp.song_title,
-                        artists,
-                        song_url
-                    };
+            let post_result = if resp.album_art_url.is_none() {
+                post_current_song_on_local(resp, &tapi).await
+            }
+            else {
+                post_current_song_on_spotify(resp, &tapi).await
+            };
 
-                    let _ = tapi.compose_new_tweet_with_media(&text, &media_ids).await;
-                    Ok(())
-                }
-                None => {
-                    Err("Tweet failed. Could not upload a image to twitter".to_string())
-                }
+            match post_result {
+                Ok(_) => Ok(()),
+                Err(reason) => Err(reason.to_string())
             }
         }
         Err(reason) => {
@@ -79,20 +116,20 @@ async fn post_current_song(
 #[tokio::main]
 async fn main() {
     let credentials = get_credentials();
-    
+
     //creating API instances
     let tapi = TwitterAPI::new(&credentials.twitter_key, &credentials.twitter_secret).await;
     let mut sapi = get_spotify_api(&credentials).await;
 
     println!{"\x1b[1;32mReady\x1b[0;97m"};
-    
+
     loop {
         print!{"Waiting... (0) exit (1) Post current song : "};
         stdout().flush().unwrap();
 
         let mut input = String::new();
         stdin().read_line(&mut input).unwrap();
-        
+
         if let Ok(i) = input.trim().parse::<usize>() {
             match i {
                 0 => {
@@ -103,8 +140,8 @@ async fn main() {
                         Ok(()) => {
                             println!{"Posted Successfully"};
                         }
-                        _ => {
-                            eprintln!{"Unknown Error"};
+                        Err(e) => {
+                            eprintln!{"Error!\nExpected reason: {}", e};
                         }
                     }
                 },
