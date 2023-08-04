@@ -4,80 +4,6 @@ const API_AUTHORIZE_URL: &str = "https://accounts.spotify.com/authorize";
 const URL_ENCODED_REDIRECT_URI: &str = "http%3A%2F%2Flocalhost%3A8080%2Fcallback";
 const UNENCODED_REDIRECT_URI: &str = "http://localhost:8080/callback";
 
-#[allow(dead_code)]
-#[allow(non_snake_case)]
-pub mod Bearer {
-    #[allow(unused_imports)]
-    use chrono::prelude::{DateTime, Utc};
-    use chrono::Duration;
-    use base64;
-    use reqwest;
-    use serde::{Deserialize};
-    use crate::api_model::credentials::API_TOKEN_URL;
-
-    #[derive(Deserialize, Debug)]
-    struct AuthResponse {
-        access_token: String,
-        token_type: String,
-        expires_in: i64
-    }
-
-    pub struct ApiCredential<'a> {
-        client_id: &'a str,
-        secret_id: &'a str,
-        access_token: String,
-        expires_at: DateTime<Utc>,
-    }
-
-    #[allow(dead_code)]
-    impl ApiCredential<'_> {
-        pub fn new<'a>(
-            cid: &'a str,
-            sid: &'a str
-        ) -> ApiCredential<'a> {
-            let now = Utc::now();
-
-            return ApiCredential {
-                client_id: cid,
-                secret_id: sid,
-                access_token: "".to_string(),
-                expires_at: now
-            }
-        }
-
-        fn make_auth_header(&self) -> String {
-            let original = format!{"{}:{}", self.client_id, self.secret_id};
-            base64::encode(original)
-        }
-
-        pub async fn perform_auth(&mut self) -> reqwest::Result<()> {
-            let cred = self.make_auth_header();
-
-            let param = [("grant_type", "client_credentials")];
-            let res = reqwest::Client::new().post(API_TOKEN_URL)
-                .form(&param)
-                .header("Authorization", format!{"Basic {}", cred})
-                .send().await?
-                .json::<AuthResponse>().await?;
-
-            self.access_token = res.access_token;
-            self.expires_at = Utc::now() + Duration::seconds(res.expires_in.into());
-                
-            Ok(())
-        }
-
-        pub fn is_token_valid(&self) -> bool {
-            self.access_token != "" && Utc::now() < self.expires_at
-        }
-
-        pub fn get_access_token(&self) -> String {
-            let temp = self.access_token.clone();
-            temp
-        }
-    }
-}
-
-#[allow(dead_code)]
 #[allow(non_snake_case)]
 pub mod Code {
     use chrono::prelude::{DateTime, Utc};
@@ -153,7 +79,9 @@ pub mod Code {
     }
 
     //------------------------ApiCredential---------------------------------
-    
+
+    //Allowing "dead_code" because we don't need scope, token_type
+    #[allow(dead_code)]
     #[derive(Deserialize, Debug)]
     struct AuthResponse {
         access_token: String,
