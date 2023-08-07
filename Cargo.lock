@@ -33,6 +33,7 @@ name = "base"
 version = "0.1.0"
 dependencies = [
  "dotenv",
+ "interface",
  "reqwest",
  "spotify_api",
  "tokio",

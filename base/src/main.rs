@@ -3,6 +3,7 @@ use reqwest;
 use twitter_api::api_model::api::Api as TwitterAPI;
 use spotify_api::api_model::api::Api as SpotifyAPI;
 use spotify_api::api_model::responses::CurrentSong;
+use interface::PostAPI;
 use std::io::stdin;
 use std::io::{stdout, Write};
 
@@ -41,7 +42,7 @@ async fn get_spotify_api(cred: &AuthKey) -> SpotifyAPI {
 
 async fn post_current_song_on_local(
     data: CurrentSong,
-    tapi: &TwitterAPI
+    papi: &dyn PostAPI
 ) -> Result<(), String> {
     let artists = &data.track_artists.join(", ");
     let text = if &artists.chars().count() > &0 {
@@ -51,7 +52,7 @@ async fn post_current_song_on_local(
         format!{"#nowplaying {}", &data.song_title}
     };
 
-    match tapi.compose_new_tweet(&text).await {
+    match papi.compose_without_picture(&text).await {
         Ok(_) => Ok(()),
         Err(_) => Err("Tweet failed.".to_string())
     }
@@ -59,14 +60,14 @@ async fn post_current_song_on_local(
 
 async fn post_current_song_on_spotify(
     data: CurrentSong,
-    tapi: &TwitterAPI
+    papi: &dyn PostAPI
 ) -> Result<(), String> {
     let img = reqwest::get(&data.album_art_url.to_owned().unwrap()).await
         .unwrap()
         .bytes().await
         .unwrap();
 
-    match tapi.upload_picture(img).await {
+    match papi.upload_media(img).await {
         Some(id) => {
             let media_ids = vec![id];
             let song_url = format!{"https://open.spotify.com/track/{}", &data.song_uri.to_owned().unwrap()};
@@ -78,7 +79,7 @@ async fn post_current_song_on_spotify(
                 song_url
             };
 
-            let _ = tapi.compose_new_tweet_with_media(&text, &media_ids).await;
+            let _ = papi.compose_with_picture(&text, &media_ids).await;
             Ok(())
         }
         None => {
@@ -88,7 +89,7 @@ async fn post_current_song_on_spotify(
 }
 
 async fn post_current_song(
-    tapi: &TwitterAPI,
+    papi: &dyn PostAPI,
     sapi: &mut SpotifyAPI<'_>
 ) -> Result<(), String> {
     match sapi.fetch_current_song().await {
@@ -96,10 +97,10 @@ async fn post_current_song(
             let resp = sapi.parse_current_song_result(raw);
 
             let post_result = if resp.album_art_url.is_none() {
-                post_current_song_on_local(resp, &tapi).await
+                post_current_song_on_local(resp, papi).await
             }
             else {
-                post_current_song_on_spotify(resp, &tapi).await
+                post_current_song_on_spotify(resp, papi).await
             };
 
             match post_result {
