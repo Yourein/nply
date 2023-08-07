@@ -3,6 +3,8 @@ use std::collections::BTreeMap;
 use reqwest::multipart;
 use bytes::Bytes;
 use serde::Deserialize;
+use interface::PostAPI;
+use async_trait::async_trait;
 
 #[allow(dead_code)]
 pub struct Api {
@@ -42,8 +44,11 @@ impl Api {
             ).await
         }
     }
+}
 
-    pub async fn compose_new_tweet(&self, text: &str) -> Result<reqwest::Response, reqwest::Error> {
+#[async_trait]
+impl PostAPI for Api {
+    async fn compose_without_picture(&self, text: &str) -> Result<(), String> {
         let request_url = "https://api.twitter.com/1.1/statuses/update.json";
         let url = url::Url::parse(&request_url).unwrap();
         
@@ -60,19 +65,17 @@ impl Api {
         let client = reqwest::Client::new();
         let req = client.post(request_url).body(body);
 
-        self.session.post(
-            req,
-            &url,
-            &request_param,
-            &extra_oauth_param
-        ).await
+        match self.session.post(req, &url, &request_param, &extra_oauth_param).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e.to_string())
+        }
     }
 
-    pub async fn compose_new_tweet_with_media(
+    async fn compose_with_picture(
         &self,
         text: &str,
         media: &Vec<String>
-    ) -> Result<reqwest::Response, reqwest::Error> {
+    ) -> Result<(), String> {
         let request_url = "https://api.twitter.com/1.1/statuses/update.json";
         let url = url::Url::parse(&request_url).unwrap();
         
@@ -92,15 +95,13 @@ impl Api {
         let client = reqwest::Client::new();
         let req = client.post(request_url).body(body);
 
-        self.session.post(
-            req,
-            &url,
-            &request_param,
-            &extra_oauth_param
-        ).await
+        match self.session.post(req, &url, &request_param, &extra_oauth_param).await {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e.to_string())
+        }
     }
 
-    pub async fn upload_picture(&self, picture: Bytes) -> Option<String> {
+    async fn upload_media(&self, picture: Bytes) -> Option<String> {
         let request_url = "https://upload.twitter.com/1.1/media/upload.json";
         let url = url::Url::parse(&request_url).unwrap();
         
