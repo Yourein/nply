@@ -10,9 +10,9 @@ pub trait PostAPI {
     
     async fn compose_without_picture(
         &self, text: &str
-    ) -> String;
+    ) -> Result<(), String>;
     
     async fn compose_with_picture(
         &self, text: &str, media: &Vec<String>
-    ) -> String;
+    ) -> Result<(), String>;
 }
