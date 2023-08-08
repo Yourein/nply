@@ -4,5 +4,6 @@ members = [
     "base",
     "spotify_api",
     "twitter_api",
-    "utils"
+    "utils",
+    "interface"
 ]
