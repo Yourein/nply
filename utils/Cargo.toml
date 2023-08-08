@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 webbrowser = "0.8.10"
+interface = { path="../interface" }
+async-trait = "0.1.72"
+bytes = "1.4.0"
