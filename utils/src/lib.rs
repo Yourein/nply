@@ -23,7 +23,7 @@ pub mod MockPostAPI {
     }
 
     impl SuccessPostAPI {
-        fn new(api_key: String, api_secret: String) -> Self {
+        pub fn new(api_key: String, api_secret: String) -> Self {
             SuccessPostAPI {
                 api_key: api_key.clone(),
                 api_secret: api_secret.clone()
