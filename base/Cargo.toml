@@ -7,8 +7,9 @@ edition = "2021"
 
 [dependencies]
 dotenv = "0.15.0"
-tokio = { version = "1", features = ["full"] }
+reqwest.workspace = true
+tokio.workspace = true
+
 interface = {path = "../interface"}
 twitter_api = {path = "../twitter_api"}
 spotify_api = {path = "../spotify_api"}
-reqwest = { version = "0.11.13", features = ["json", "blocking", "multipart"] }
