@@ -7,11 +7,12 @@ edition = "2021"
 
 [dependencies]
 utils = { path = "../utils" }
-chrono = "0.4.23"
-base64 = "0.13.1"
-reqwest = { version = "0.11.13", features = ["json"] }
-tokio = { version = "1", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-url = "2.3.1"
+
+base64.workspace = true
+chrono.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+url.workspace = true
 webbrowser = "0.8.2"
