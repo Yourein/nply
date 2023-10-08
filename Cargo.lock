@@ -658,6 +658,17 @@ dependencies = [
 [[package]]
 name = "misskey_api"
 version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "interface",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+]
 
 [[package]]
 name = "native-tls"
