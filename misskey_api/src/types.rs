@@ -1,3 +1,6 @@
+use serde::Deserialize;
+
+#[allow(non_snake_case)]
 pub struct CreatingNote {
     /// A type of request body of notes/create
     /// Please notice that this is very limited difinition.
@@ -10,6 +13,8 @@ pub struct CreatingNote {
 }
 
 /// A type represents a misskey user
+#[derive(Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct User {
 
     pub id: String,
@@ -26,14 +31,18 @@ pub struct User {
 }
 
 /// Responses of Misskey backend (API)
+#[allow(non_snake_case)]
 pub mod Responses {
     use super::User;
-
+    use serde::Deserialize;
+    
     /// Response of notes/create 200 (OK)
     /// Please notice that this is an **INCOMPLETE** definition.
     /// Some optional parameters could be dropped at parse.
     ///
     /// To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
+    #[derive(Deserialize, Debug)]
+    #[allow(non_snake_case)]
     pub struct CreatedNote {
         pub id: String,
         pub createdAt: String,
@@ -46,6 +55,8 @@ pub mod Responses {
         pub url: Option<String>
     }
 
+    #[derive(Deserialize, Debug)]
+    #[allow(non_snake_case)]
     pub struct DriveFile {
         pub id: String,
         pub name: String,
@@ -65,6 +76,8 @@ pub mod Responses {
         pub user: Option<User>
     }
 
+    #[derive(Deserialize, Debug)]
+    #[allow(non_snake_case)]
     pub struct ImgProperties {
         pub width: i32,
         pub height: i32,
@@ -72,6 +85,8 @@ pub mod Responses {
         pub avgColor: String
     }
 
+    #[derive(Deserialize, Debug)]
+    #[allow(non_snake_case)]
     pub struct DriveFolder {
         pub id: String,
         pub createdAt: String,
@@ -83,6 +98,8 @@ pub mod Responses {
     }
 
     /// A common type for an error response
+    #[derive(Deserialize, Debug)]
+    #[allow(non_snake_case)]
     pub struct CommonError {
         pub code: String,
         pub message: String,
