@@ -46,9 +46,44 @@ pub mod Responses {
         pub url: Option<String>
     }
 
-    pub struct CommonError {
-        //! A common type for an error response
+    pub struct DriveFile {
+        pub id: String,
+        pub name: String,
+        #[serde(rename = "type")]
+        pub format: String,
+        pub md5: String,
+        pub size: i32,
+        pub isSensitive: bool,
+        pub blurhash: Option<String>,
+        pub properties: ImgProperties,
+        pub url: Option<String>,
+        pub thumbnailUrl: Option<String>,
+        pub comment: Option<String>,
+        pub folderId: Option<String>,
+        pub folder: Option<DriveFolder>,
+        pub userId: Option<String>,
+        pub user: Option<User>
+    }
 
+    pub struct ImgProperties {
+        pub width: i32,
+        pub height: i32,
+        pub orientation: i32,
+        pub avgColor: String
+    }
+
+    pub struct DriveFolder {
+        pub id: String,
+        pub createdAt: String,
+        pub name: String,
+        pub foldersCount: Option<i32>,
+        pub filesCount: Option<i32>,
+        pub parentId: Option<String>,
+        pub parent: Option<Box<DriveFile>>
+    }
+
+    /// A common type for an error response
+    pub struct CommonError {
         pub code: String,
         pub message: String,
         pub id: String
