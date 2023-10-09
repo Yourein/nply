@@ -8,7 +8,7 @@ pub struct MisskeyApi {
 impl MisskeyApi {
     pub fn new(code: String) -> Self {
         MisskeyApi {
-            access_code: code.clone()
+            access_code: code;
         }
     }
 
