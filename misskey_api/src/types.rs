@@ -55,6 +55,7 @@ pub mod Responses {
         pub url: Option<String>
     }
 
+    /// A type that represents a file in drive
     #[derive(Deserialize, Debug)]
     #[allow(non_snake_case)]
     pub struct DriveFile {
@@ -85,6 +86,7 @@ pub mod Responses {
         pub avgColor: String
     }
 
+    /// A type that represents a folder in drive
     #[derive(Deserialize, Debug)]
     #[allow(non_snake_case)]
     pub struct DriveFolder {
