@@ -1,13 +1,13 @@
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
+/// A type of request body of notes/create
+/// Please notice that this is very limited difinition.
+/// You can extend this type to change other note options.
+///
+/// To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
+#[derive(Serialize, Debug)]
 #[allow(non_snake_case)]
 pub struct CreatingNote {
-    /// A type of request body of notes/create
-    /// Please notice that this is very limited difinition.
-    /// You can extend this type to change other note options.
-    ///
-    /// To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
-
     pub text: String,         // Body
     pub mediaIds: Vec<String> // Pictures? (I don't know the difference between 'fileIds: Vec<String>')
 }
