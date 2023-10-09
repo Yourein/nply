@@ -1,16 +1,16 @@
 pub struct CreatingNote {
-    //! A type of request body of notes/create
-    //! Please notice that this is very limited difinition.
-    //! You can extend this type to change other note options.
-    //!
-    //! To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
+    /// A type of request body of notes/create
+    /// Please notice that this is very limited difinition.
+    /// You can extend this type to change other note options.
+    ///
+    /// To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
 
     pub text: String,         // Body
     pub mediaIds: Vec<String> // Pictures? (I don't know the difference between 'fileIds: Vec<String>')
 }
 
+/// A type represents a misskey user
 pub struct User {
-    //! A type represents a misskey user
 
     pub id: String,
     pub name: Option<String>,
@@ -25,16 +25,16 @@ pub struct User {
     pub onlineStatus: Option<String>
 }
 
+/// Responses of Misskey backend (API)
 pub mod Responses {
-    //! Responses of Misskey backend (API)
+    use super::User;
 
+    /// Response of notes/create 200 (OK)
+    /// Please notice that this is an **INCOMPLETE** definition.
+    /// Some optional parameters could be dropped at parse.
+    ///
+    /// To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
     pub struct CreatedNote {
-        //! Response of notes/create 200 (OK)
-        //! Please notice that this is an **INCOMPLETE** definition.
-        //! Some optional parameters could be dropped at parse.
-        //!
-        //! To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
-        
         pub id: String,
         pub createdAt: String,
         pub text: Option<String>,
