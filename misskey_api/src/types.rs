@@ -12,6 +12,13 @@ pub struct CreatingNote {
     pub mediaIds: Vec<String> // Pictures? (I don't know the difference between 'fileIds: Vec<String>')
 }
 
+/// A type used to make a request for drive/files/find-by-hash
+#[derive(Serialize, Debug)]
+#[allow(non_snake_case)]
+pub struct Md5Container {
+    pub md5: String
+}
+
 /// A type represents a misskey user
 #[derive(Deserialize, Debug)]
 #[allow(non_snake_case)]
@@ -97,6 +104,13 @@ pub mod Responses {
         pub filesCount: Option<i32>,
         pub parentId: Option<String>,
         pub parent: Option<Box<DriveFile>>
+    }
+
+    /// Response of drive/files/find*
+    #[derive(Deserialize, Debug)]
+    #[allow(non_snake_case)]
+    pub struct FileSearchResult {
+        pub result: Vec<DriveFile>
     }
 
     /// A common type for an error response
