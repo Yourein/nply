@@ -15,6 +15,10 @@ impl MisskeyApi {
     pub async fn check_picture_exist(picture: &Bytes) -> Result<bool, String> {
         TODO!()
     }
+
+    fn hash_picture(picture: &Bytes) -> String {
+        TODO!()
+    }
 }
 
 #[async_trait]
