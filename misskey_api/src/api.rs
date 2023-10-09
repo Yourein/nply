@@ -1,4 +1,6 @@
 use interface::PostAPI;
+use async_trait::async_trait;
+use bytes::Bytes;
 
 #[allow(dead_code)]
 pub struct MisskeyApi {
@@ -13,25 +15,25 @@ impl MisskeyApi {
     }
 
     pub async fn check_picture_exist(picture: &Bytes) -> Result<bool, String> {
-        TODO!()
+        todo!()
     }
 
     fn hash_picture(picture: &Bytes) -> String {
-        TODO!()
+        todo!()
     }
 }
 
 #[async_trait]
 impl PostAPI for MisskeyApi {
     async fn compose_without_picture(&self, text: &str) -> Result<(), String> {
-        TODO!()
+        todo!()
     }
 
     async fn compose_with_picture(&self, text: &str, media: &Vec<String>) -> Result<(), String> {
-        TODO!()
+        todo!()
     }
 
     async fn upload_media(&self, picture: Bytes) -> Option<String> {
-        TODO!()
+        todo!()
     }
 }
