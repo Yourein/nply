@@ -1,5 +1,6 @@
 use crate::types::*;
 use crate::types::Responses::*;
+use crate::consts::ENDPOINT;
 use interface::PostAPI;
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -8,14 +9,14 @@ use reqwest;
 #[allow(dead_code)]
 pub struct MisskeyApi {
     access_code: String,
-    base_url: String
+    host: String
 }
 
 impl MisskeyApi {
     pub fn new(code: String, host: String) -> Self {
         MisskeyApi {
             access_code: code,
-            base_url: format!{"https://{}/api", host}
+            host: host
         }
     }
 
@@ -25,6 +26,10 @@ impl MisskeyApi {
 
     fn hash_picture(picture: &Bytes) -> String {
         todo!()
+    }
+
+    fn get_endpoint_url(&self, endpoint: &str) -> String {
+        format!{"https:://{}/{}", &self.host, endpoint}
     }
 }
 
@@ -36,7 +41,8 @@ impl PostAPI for MisskeyApi {
             text: text.to_string()
         };
 
-        let res = reqwest::Client::new().post(format!{"{}/notes/create", &self.base_url})
+        let res = reqwest::Client::new()
+            .post(self.get_endpoint_url(ENDPOINT::notes::create))
             .header("Content-Type", "application/json")
             .json(&payload)
             .send().await;
