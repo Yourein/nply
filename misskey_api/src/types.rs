@@ -28,7 +28,8 @@ pub(crate) struct NoteWithoutPicture<'a> {
 /// A type used to make a request for drive/files/find-by-hash
 #[derive(Serialize, Debug)]
 #[allow(non_snake_case)]
-pub struct Md5Container {
+pub struct Md5Container<'a> {
+    pub i: &'a str,
     pub md5: String
 }
 
