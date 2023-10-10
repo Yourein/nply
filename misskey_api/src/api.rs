@@ -4,13 +4,15 @@ use bytes::Bytes;
 
 #[allow(dead_code)]
 pub struct MisskeyApi {
-    access_code: String
+    access_code: String,
+    base_url: String
 }
 
 impl MisskeyApi {
-    pub fn new(code: String) -> Self {
+    pub fn new(code: String, host: String) -> Self {
         MisskeyApi {
-            access_code: code
+            access_code: code,
+            base_url: format!{"https://{}/api", host}
         }
     }
 
