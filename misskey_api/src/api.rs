@@ -20,7 +20,7 @@ impl MisskeyApi {
         }
     }
 
-    pub async fn check_picture_exist(picture: &Bytes) -> Result<bool, String> {
+    pub(crate) async fn check_picture_exist(picture: &Bytes) -> Result<bool, String> {
         todo!()
     }
 
