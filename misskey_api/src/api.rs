@@ -4,6 +4,7 @@ use crate::consts::ENDPOINT;
 use interface::PostAPI;
 use async_trait::async_trait;
 use bytes::Bytes;
+use md5;
 use reqwest;
 use reqwest::multipart;
 
