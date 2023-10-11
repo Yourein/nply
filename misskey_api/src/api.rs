@@ -133,41 +133,34 @@ impl PostAPI for MisskeyApi {
 
     async fn upload_media(&self, picture: Bytes) -> Option<String> {
         let file_hash = self.hash_picture(&picture);
-        let already_exist = self.check_picture_exist(&file_hash).await;
+        let search_result = self.find_by_hash(&file_hash).await;
 
-        if already_exist.is_ok() && already_exist == Ok(false) {
-            let payload = multipart::Form::new()
-                .text("i", format!{"{}", &self.access_code})
-                .part("file", self.create_image_part(picture, format!{"{}", Utc::now().timestamp()}));
+        match search_result {
+            Ok(sr) => {
+                if sr.len() == 0 {
+                    let payload = multipart::Form::new()
+                        .text("i", format!{"{}", &self.access_code})
+                        .part("file", self.create_image_part(picture, format!{"{}", Utc::now().timestamp()}));
 
-            let res = reqwest::Client::new()
-                .post(self.get_endpoint_url(ENDPOINT::drive::files::create))
-                .multipart(payload)
-                .send().await;
+                    let res = reqwest::Client::new()
+                        .post(self.get_endpoint_url(ENDPOINT::drive::files::create))
+                        .multipart(payload)
+                        .send().await;
 
-            match res {
-                Ok(r) => {
-                    if r.status().as_u16() == 200 {
-                        let apires = r.json::<DriveFile>().await.unwrap();
-                        Some(apires.id)
+                    if res.is_ok() && res.as_ref().ok()?.status().as_u16() == 200 {
+                        let f = res.unwrap().json::<DriveFile>().await.unwrap();
+                        Some(f.id)
                     }
                     else {
                         None
                     }
-                },
-                Err(_) => {
-                    None
                 }
-            }
-        }
-        else {
-            match self.find_by_hash(&file_hash).await {
-                Ok(r) => {
-                    Some(r[0].id.clone())
-                },
-                Err(_) => {
-                    None
+                else {
+                    Some(sr[0].id.clone())
                 }
+            },
+            Err(_) => {
+                None
             }
         }
     }
