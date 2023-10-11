@@ -24,7 +24,7 @@ impl MisskeyApi {
     }
 
     /// Find file by its md5 hash.
-    /// If nothing match, FileSearchResult.result.len() will be 0 (empty vec)
+    /// If nothing matches, FileSearchResult.result.len() will be 0 (empty vec)
     pub(crate) async fn find_by_hash(&self, md5: &str) -> Result<Vec<DriveFile>, String> {
         let payload = Md5Container {
             i: &self.access_code,
@@ -126,6 +126,7 @@ impl PostAPI for MisskeyApi {
         match search_result {
             Ok(sr) => {
                 if sr.len() == 0 {
+                    // Using format! at .text() to avoid problems about borrowing/move
                     let payload = multipart::Form::new()
                         .text("i", format!{"{}", &self.access_code})
                         .part("file", self.create_image_part(picture, format!{"{}", Utc::now().timestamp()}));
@@ -135,6 +136,8 @@ impl PostAPI for MisskeyApi {
                         .multipart(payload)
                         .send().await;
 
+                    // Ignoring errors 4** and 5**
+                    // Put a condition of res.is_ok() && status != 200 to debug
                     if res.is_ok() && res.as_ref().ok()?.status().as_u16() == 200 {
                         let f = res.unwrap().json::<DriveFile>().await.unwrap();
                         Some(f.id)
