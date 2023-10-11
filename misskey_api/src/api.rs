@@ -64,7 +64,7 @@ impl MisskeyApi {
     }
 
     fn hash_picture(&self, picture: &Bytes) -> String {
-        todo!()
+        format!{"{:x}", md5::compute(picture)}
     }
 
     pub(crate) fn create_image_part(&self, picture: Bytes, name: String) -> multipart::Part {
