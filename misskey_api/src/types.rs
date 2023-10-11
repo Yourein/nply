@@ -120,13 +120,6 @@ pub mod Responses {
         pub parent: Option<Box<DriveFile>>
     }
 
-    /// Response of drive/files/find*
-    #[derive(Deserialize, Debug)]
-    #[allow(non_snake_case)]
-    pub struct FileSearchResult {
-        pub result: Vec<DriveFile>
-    }
-
     /// A common type for an error response
     #[derive(Deserialize, Debug)]
     #[allow(non_snake_case)]
