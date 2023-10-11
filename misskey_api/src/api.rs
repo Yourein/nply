@@ -4,6 +4,7 @@ use crate::consts::ENDPOINT;
 use interface::PostAPI;
 use async_trait::async_trait;
 use bytes::Bytes;
+use chrono::Utc;
 use md5;
 use reqwest;
 use reqwest::multipart;
@@ -137,7 +138,7 @@ impl PostAPI for MisskeyApi {
         if already_exist.is_ok() && already_exist == Ok(false) {
             let payload = multipart::Form::new()
                 .text("i", format!{"{}", &self.access_code})
-                .part("file", self.create_image_part(picture, "hoge".to_string()));
+                .part("file", self.create_image_part(picture, format!{"{}", Utc::now().timestamp()}));
 
             let res = reqwest::Client::new()
                 .post(self.get_endpoint_url(ENDPOINT::drive::files::create))
