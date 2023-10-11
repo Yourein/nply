@@ -58,7 +58,7 @@ impl MisskeyApi {
                     Err(e.message.unwrap())
                 }
             },
-            Err(e) => {
+            Err(_) => {
                 Err("Unknown Error Occured".to_string())
             }
         }
@@ -120,7 +120,7 @@ impl PostAPI for MisskeyApi {
                     Err(e.message.unwrap())
                 }
             },
-            Err(e) => {
+            Err(_e) => {
                 Err("Unknown Error Occured".to_string())
             }
         }
