@@ -135,28 +135,28 @@ impl PostAPI for MisskeyApi {
         let already_exist = self.check_picture_exist(&file_hash).await;
 
         if already_exist.is_ok() && already_exist == Ok(false) {
-        let payload = multipart::Form::new()
-            .text("i", format!{"{}", &self.access_code})
+            let payload = multipart::Form::new()
+                .text("i", format!{"{}", &self.access_code})
                 .part("file", self.create_image_part(picture, "hoge".to_string()));
 
-        let res = reqwest::Client::new()
-            .post(self.get_endpoint_url(ENDPOINT::drive::files::create))
-            .multipart(payload)
-            .send().await;
+            let res = reqwest::Client::new()
+                .post(self.get_endpoint_url(ENDPOINT::drive::files::create))
+                .multipart(payload)
+                .send().await;
 
-        match res {
-            Ok(r) => {
-                if r.status().as_u16() == 200 {
-                    let apires = r.json::<DriveFile>().await.unwrap();
-                    Some(apires.id)
-                }
-                else {
-                    None
-                }
+            match res {
+                Ok(r) => {
+                    if r.status().as_u16() == 200 {
+                        let apires = r.json::<DriveFile>().await.unwrap();
+                        Some(apires.id)
+                    }
+                    else {
+                        None
+                    }
                 },
                 Err(_) => {
                     None
-            }
+                }
             }
         }
         else {
@@ -164,8 +164,8 @@ impl PostAPI for MisskeyApi {
                 Ok(r) => {
                     Some(r.result[0].id.clone())
                 },
-            Err(_) => {
-                None
+                Err(_) => {
+                    None
                 }
             }
         }
