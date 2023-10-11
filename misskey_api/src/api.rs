@@ -5,6 +5,7 @@ use interface::PostAPI;
 use async_trait::async_trait;
 use bytes::Bytes;
 use reqwest;
+use reqwest::multipart;
 
 #[allow(dead_code)]
 pub struct MisskeyApi {
@@ -68,6 +69,33 @@ impl PostAPI for MisskeyApi {
     }
 
     async fn upload_media(&self, picture: Bytes) -> Option<String> {
-        todo!()
+        let pic_array: Vec<u8> = picture.try_into().unwrap();
+        let part_picture = multipart::Part::bytes(pic_array)
+            .mime_str("image/jpeg").unwrap()
+            .file_name("hoge.jpg");
+
+        let payload = multipart::Form::new()
+            .text("i", format!{"{}", &self.access_code})
+            .part("file", part_picture);
+
+        let res = reqwest::Client::new()
+            .post(self.get_endpoint_url(ENDPOINT::drive::files::create))
+            .multipart(payload)
+            .send().await;
+
+        match res {
+            Ok(r) => {
+                if r.status().as_u16() == 200 {
+                    let apires = r.json::<DriveFile>().await.unwrap();
+                    Some(apires.id)
+                }
+                else {
+                    None
+                }
+            }
+            Err(_) => {
+                None
+            }
+        }
     }
 }
