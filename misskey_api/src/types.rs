@@ -103,8 +103,8 @@ pub mod Responses {
     pub struct ImgProperties {
         pub width: i32,
         pub height: i32,
-        pub orientation: i32,
-        pub avgColor: String
+        pub orientation: Option<i32>,
+        pub avgColor: Option<String>
     }
 
     /// A type that represents a folder in drive
@@ -131,8 +131,8 @@ pub mod Responses {
     #[derive(Deserialize, Debug)]
     #[allow(non_snake_case)]
     pub struct CommonError {
-        pub code: String,
-        pub message: String,
-        pub id: String
+        pub code: Option<String>,
+        pub message: Option<String>,
+        pub id: Option<String>
     }
 }

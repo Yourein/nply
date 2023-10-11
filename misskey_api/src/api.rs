@@ -54,7 +54,7 @@ impl PostAPI for MisskeyApi {
                 }
                 else {
                     let e = r.json::<CommonError>().await.unwrap();
-                    Err(e.message)
+                    Err(e.message.unwrap())
                 }
             },
             Err(e) => {
