@@ -23,18 +23,6 @@ impl MisskeyApi {
         }
     }
 
-    /// Check if hashed picture is already on Drive or not.
-    pub(crate) async fn check_picture_exist(&self, md5: &str) -> Result<bool, String> {
-        match self.find_by_hash(&md5).await {
-            Ok(res) => {
-                if res.len() > 0 { Ok(true) } else { Ok(false) }
-            },
-            Err(e) => {
-                Err(e)
-            }
-        }
-    }
-
     /// Find file by its md5 hash.
     /// If nothing match, FileSearchResult.result.len() will be 0 (empty vec)
     pub(crate) async fn find_by_hash(&self, md5: &str) -> Result<Vec<DriveFile>, String> {
