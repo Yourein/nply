@@ -21,7 +21,7 @@ impl MisskeyApi {
         }
     }
 
-    pub(crate) async fn check_picture_exist(picture: &Bytes) -> Result<bool, String> {
+    fn hash_picture(&self, picture: &Bytes) -> String {
         todo!()
     }
 
