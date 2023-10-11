@@ -21,6 +21,48 @@ impl MisskeyApi {
         }
     }
 
+    /// Check if hashed picture is already on Drive or not.
+    pub(crate) async fn check_picture_exist(&self, md5: &str) -> Result<bool, String> {
+        match self.find_by_hash(&md5).await {
+            Ok(res) => {
+                if res.result.len() > 0 { Ok(true) } else { Ok(false) }
+            },
+            Err(e) => {
+                Err(e)
+            }
+        }
+    }
+
+    /// Find file by its md5 hash.
+    /// If nothing match, FileSearchResult.result.len() will be 0 (empty vec)
+    pub(crate) async fn find_by_hash(&self, md5: &str) -> Result<FileSearchResult, String> {
+        let payload = Md5Container {
+            i: &self.access_code,
+            md5: md5.to_string()
+        };
+
+        let res = reqwest::Client::new()
+            .post(self.get_endpoint_url(ENDPOINT::drive::files::find_by_hash))
+            .json(&payload)
+            .send().await;
+
+        match res {
+            Ok(r) => {
+                if r.status().as_u16() == 200 {
+                    let search_result = r.json::<FileSearchResult>().await.unwrap();
+                    Ok(search_result)
+                }
+                else {
+                    let e = r.json::<CommonError>().await.unwrap();
+                    Err(e.message.unwrap())
+                }
+            },
+            Err(e) => {
+                Err("Unknown Error Occured".to_string())
+            }
+        }
+    }
+
     fn hash_picture(&self, picture: &Bytes) -> String {
         todo!()
     }
@@ -88,11 +130,10 @@ impl PostAPI for MisskeyApi {
     }
 
     async fn upload_media(&self, picture: Bytes) -> Option<String> {
-        let pic_array: Vec<u8> = picture.try_into().unwrap();
-        let part_picture = multipart::Part::bytes(pic_array)
-            .mime_str("image/jpeg").unwrap()
-            .file_name("hoge.jpg");
+        let file_hash = self.hash_picture(&picture);
+        let already_exist = self.check_picture_exist(&file_hash).await;
 
+        if already_exist.is_ok() && already_exist == Ok(false) {
         let payload = multipart::Form::new()
             .text("i", format!{"{}", &self.access_code})
                 .part("file", self.create_image_part(picture, "hoge".to_string()));
@@ -111,9 +152,20 @@ impl PostAPI for MisskeyApi {
                 else {
                     None
                 }
+                },
+                Err(_) => {
+                    None
             }
+            }
+        }
+        else {
+            match self.find_by_hash(&file_hash).await {
+                Ok(r) => {
+                    Some(r.result[0].id.clone())
+                },
             Err(_) => {
                 None
+                }
             }
         }
     }
