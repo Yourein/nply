@@ -13,3 +13,4 @@ tokio.workspace = true
 interface = {path = "../interface"}
 twitter_api = {path = "../twitter_api"}
 spotify_api = {path = "../spotify_api"}
+misskey_api = {path = "../misskey_api"}

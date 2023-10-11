@@ -1,21 +1,35 @@
 use serde::{Serialize, Deserialize};
 
-/// A type of request body of notes/create
+/// A type of request body of notes/create with pictures
 /// Please notice that this is very limited difinition.
 /// You can extend this type to change other note options.
 ///
 /// To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
 #[derive(Serialize, Debug)]
 #[allow(non_snake_case)]
-pub struct CreatingNote {
+pub struct NoteWithPicture<'a> {
+    pub i: &'a str,           // Credential
     pub text: String,         // Body
     pub mediaIds: Vec<String> // Pictures? (I don't know the difference between 'fileIds: Vec<String>')
+}
+
+/// A type of request body of notes/create without pictures
+/// Please notice that this is very limited difinition.
+/// You can extend this type to change other note options.
+///
+/// To find complete definition, please read https://post.yourein.net/api-doc#tag/notes/operation/notes/create
+#[derive(Serialize, Debug)]
+#[allow(non_snake_case)]
+pub(crate) struct NoteWithoutPicture<'a> {
+    pub i: &'a str,
+    pub text: String
 }
 
 /// A type used to make a request for drive/files/find-by-hash
 #[derive(Serialize, Debug)]
 #[allow(non_snake_case)]
-pub struct Md5Container {
+pub struct Md5Container<'a> {
+    pub i: &'a str,
     pub md5: String
 }
 

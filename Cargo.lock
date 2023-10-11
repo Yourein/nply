@@ -70,6 +70,7 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "interface",
+ "misskey_api",
  "reqwest",
  "spotify_api",
  "tokio",
