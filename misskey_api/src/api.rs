@@ -26,7 +26,7 @@ impl MisskeyApi {
     pub(crate) async fn check_picture_exist(&self, md5: &str) -> Result<bool, String> {
         match self.find_by_hash(&md5).await {
             Ok(res) => {
-                if res.result.len() > 0 { Ok(true) } else { Ok(false) }
+                if res.len() > 0 { Ok(true) } else { Ok(false) }
             },
             Err(e) => {
                 Err(e)
@@ -36,7 +36,7 @@ impl MisskeyApi {
 
     /// Find file by its md5 hash.
     /// If nothing match, FileSearchResult.result.len() will be 0 (empty vec)
-    pub(crate) async fn find_by_hash(&self, md5: &str) -> Result<FileSearchResult, String> {
+    pub(crate) async fn find_by_hash(&self, md5: &str) -> Result<Vec<DriveFile>, String> {
         let payload = Md5Container {
             i: &self.access_code,
             md5: md5.to_string()
@@ -50,7 +50,7 @@ impl MisskeyApi {
         match res {
             Ok(r) => {
                 if r.status().as_u16() == 200 {
-                    let search_result = r.json::<FileSearchResult>().await.unwrap();
+                    let search_result = r.json::<Vec<DriveFile>>().await.unwrap();
                     Ok(search_result)
                 }
                 else {
@@ -162,7 +162,7 @@ impl PostAPI for MisskeyApi {
         else {
             match self.find_by_hash(&file_hash).await {
                 Ok(r) => {
-                    Some(r.result[0].id.clone())
+                    Some(r[0].id.clone())
                 },
                 Err(_) => {
                     None
