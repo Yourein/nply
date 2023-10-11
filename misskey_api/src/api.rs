@@ -28,8 +28,8 @@ impl MisskeyApi {
         todo!()
     }
 
-    fn get_endpoint_url(&self, endpoint: &str) -> String {
-        format!{"https:://{}/{}", &self.host, endpoint}
+    pub(crate) fn get_endpoint_url(&self, endpoint: &str) -> String {
+        format!{"https://{}/{}", &self.host, endpoint}
     }
 }
 
