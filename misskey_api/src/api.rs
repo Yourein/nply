@@ -116,7 +116,32 @@ impl PostAPI for MisskeyApi {
     }
 
     async fn compose_with_picture(&self, text: &str, media: &Vec<String>) -> Result<(), String> {
-        todo!()
+        let payload = NoteWithPicture {
+            i: &self.access_code,
+            text: text.to_string(),
+            mediaIds: media.to_vec()
+        };
+
+        let res = reqwest::Client::new()
+            .post(self.get_endpoint_url(ENDPOINT::notes::create))
+            .header("Content-Type", "application/json")
+            .json(&payload)
+            .send().await;
+
+        match res {
+            Ok(r) => {
+                if r.status().as_u16() == 200 {
+                    Ok(())
+                }
+                else {
+                    let e = r.json::<CommonError>().await.unwrap();
+                    Err(e.message.unwrap())
+                }
+            },
+            Err(_) => {
+                Err("Unknown Error Occured".to_string())
+            }
+        }
     }
 
     async fn upload_media(&self, picture: Bytes) -> Option<String> {
