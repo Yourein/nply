@@ -70,6 +70,7 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "interface",
+ "misskey_api",
  "reqwest",
  "spotify_api",
  "tokio",
@@ -614,6 +615,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "md5"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "490cc448043f947bae3cbee9c203358d62dbee0db12107a74be5c30ccfd09771"
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -653,6 +660,22 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "misskey_api"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "interface",
+ "md5",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
 ]
 
 [[package]]

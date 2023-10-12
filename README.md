@@ -13,14 +13,10 @@
 
 This is a Rust based cli application that allows you to share your \#nowplaying on Spotify.  
 
-This application is unfortunately under in reconstruction since $\mathbb{X}$ (Twitter) restricting its API.  
-You can not execute this program without `TWITTER_API_KEY` and `TWITTER_API_SECRET` in your `.env` file.
+You can post to Misskey (and its fork; using same api endpoint and schema) and X.
 
 # Milestone
 
-- Support Misskey API (High Priority)
-  - This change will allow you to share your \#nowplaying to the Fediverse via a misskey server.
-- Change the code to not panic if the `TWITTER_API_KEY` and `TWITTER_API_SECRET` are missing (High Priority)
 - Change the code to embed your API keys to a executable by setting file (Mid Priority)
   - This change will allow you to use this application without `cargo run`, just `cargo install` once.
 
@@ -48,9 +44,12 @@ SPOTIFY_API_KEY=
 SPOTIFY_API_SECRET=
 TWITTER_API_KEY=
 TWITTER_API_SECRET=
+MISSKEY_API_TOKEN=
+MISSKEY_HOST=
 ```
 
 Fill the right side of the equals.
+If you do not want to post to X (or Misskey), you can leave its API key empty.
 
 ## 3. run
 
