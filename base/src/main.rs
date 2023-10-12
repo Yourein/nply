@@ -51,8 +51,14 @@ async fn get_spotify_api(cred: &AuthKey) -> SpotifyAPI {
 async fn main() {
     let credentials = get_credentials();
 
-    //creating API instances
-    let tapi = TwitterAPI::new(&credentials.twitter_key, &credentials.twitter_secret).await;
+    // creating API instances
+    // uncomment below to get TwitterAPI instance.
+    // TODO: let the user choose an api instance (Twitter or Misskey)
+    // let tapi = TwitterAPI::new(&credentials.twitter_key, &credentials.twitter_secret).await;
+    let tapi = MisskeyApi::new(
+            credentials.misskey_token.as_ref().unwrap().to_string(),
+            credentials.misskey_host.as_ref().unwrap().to_string()
+        );
     let mut sapi = get_spotify_api(&credentials).await;
 
     println!{"\x1b[1;32mReady\x1b[0;97m"};
