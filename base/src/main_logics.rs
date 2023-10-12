@@ -50,10 +50,7 @@ pub async fn post_current_song_on_spotify(
     }
 }
 
-pub async fn post_current_song(
-    papi: &dyn PostAPI,
-    sapi: &mut SpotifyAPI<'_>
-) -> Result<(), String> {
+pub async fn post_current_song(papi: &dyn PostAPI, sapi: &mut SpotifyAPI<'_>) {
     match sapi.fetch_current_song().await {
         Ok(raw) => {
             let resp = sapi.parse_current_song_result(raw);
@@ -66,12 +63,12 @@ pub async fn post_current_song(
             };
 
             match post_result {
-                Ok(_) => Ok(()),
-                Err(reason) => Err(reason.to_string())
+                Ok(_) => println!{"Posted Successfully."},
+                Err(reason) => eprintln!{"Error!\nExpected reason: {}", reason.to_string()}
             }
         }
         Err(reason) => {
-            Err(reason.to_string())
+            eprintln!{"Error!\nExpected reason: {}", reason.to_string()};
         }
     }
 }

@@ -79,14 +79,7 @@ async fn main() {
                     std::process::exit(0);
                 }
                 1 => {
-                    match post_current_song(&tapi, &mut sapi).await {
-                        Ok(()) => {
-                            println!{"Posted Successfully"};
-                        }
-                        Err(e) => {
-                            eprintln!{"Error!\nExpected reason: {}", e};
-                        }
-                    }
+                    post_current_song(&tapi, &mut sapi).await
                 },
                 _ => {
                     eprintln!{"Unknown choice selected. Please try again"};
