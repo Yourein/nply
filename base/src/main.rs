@@ -2,12 +2,15 @@ mod main_logics;
 
 use dotenv;
 use main_logics::post_current_song;
-use twitter_api::api_model::api::Api as TwitterAPI;
+#[allow(unused_imports)] use twitter_api::api_model::api::Api as TwitterAPI;
+#[allow(unused_imports)] use misskey_api::api::MisskeyApi;
 use spotify_api::api_model::api::Api as SpotifyAPI;
-use misskey_api::api::MisskeyApi;
 use std::io::stdin;
 use std::io::{stdout, Write};
 
+
+// Allowing dead_code since twitter_key(secret) or misskey_token(host) could be dead
+#[allow(dead_code)]
 struct AuthKey {
     spotify_key: String,
     spotify_secret: String,
