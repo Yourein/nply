@@ -5,6 +5,7 @@ use std::str;
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
 use url::Url;
+use base64::{Engine as _, engine::general_purpose};
 
 pub struct OAuthHeader {
     pub signature: String,
@@ -83,7 +84,7 @@ impl OAuthHeader {
         let base = format!{"{}&{}&{}", request_method, p_encode(&(Self::get_base_url(url))), p_encode(&param_string)};
         let hash = hmacsha1::hmac_sha1(crypt_key.as_bytes(), base.as_bytes());
         
-        base64::encode(&hash).to_string()
+        general_purpose::STANDARD_NO_PAD.encode(&hash)
     }
 
     fn get_base_url(url: &Url) -> String {
@@ -102,7 +103,7 @@ impl OAuthHeader {
             .map(char::from)
             .collect();
 
-        let b64_encoded_str: String = base64::encode(rand_str);
+        let b64_encoded_str = general_purpose::STANDARD_NO_PAD.encode(rand_str);
         let res = b64_encoded_str.replace(&['+', '/', '='], "");
 
         res

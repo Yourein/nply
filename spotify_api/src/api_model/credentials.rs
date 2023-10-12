@@ -14,7 +14,7 @@ pub mod Code {
     use std::net::TcpListener;
     use utils::throw_url;
     use reqwest;
-    use base64;
+    use base64::{Engine as _, engine::general_purpose};
     use serde::Deserialize;
     use std::collections::HashMap;
     
@@ -113,7 +113,7 @@ pub mod Code {
 
         fn make_auth_header(&self) -> String {
             let original = format!{"{}:{}", self.client_id, self.secret_id};
-            base64::encode(original)
+            general_purpose::STANDARD_NO_PAD.encode(original)
         }
 
         pub async fn perform_auth(&mut self) 
