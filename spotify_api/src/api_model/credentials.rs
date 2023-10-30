@@ -67,8 +67,15 @@ pub mod Code {
                     
                     auth_code = value.to_string();
                 }
-                
-                let message = "OK";
+
+                // This html closes the tab itself automatically.
+                let message: String = vec![
+                    "<!DOCTYPE html>",
+                    "<html>",
+                    "<body onload=\"open(location, '_self').close();\">",
+                    "</body>",
+                    "</html>"
+                ].concat();
                 let response = format!{"HTTP/1.1 OK\rcontent_length: {}\r\n\r\n{}", message.len(), message};
                 stream.write_all(response.as_bytes()).unwrap();
                 break;
