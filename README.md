@@ -15,6 +15,8 @@ This is a Rust based cli application that allows you to share your \#nowplaying 
 
 You can post to Misskey (and its fork; using same api endpoint and schema) and X.
 
+![](https://firebasestorage.googleapis.com/v0/b/kdatabase-1088a.appspot.com/o/nply%2FScreenshot%20from%202023-11-02%2009-41-33.png?alt=media)
+
 # Milestone
 
 - Change the code to embed your API keys to a executable by setting file (Mid Priority)
